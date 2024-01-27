@@ -1,19 +1,16 @@
 "use strict";
-import { View, Text, Button, Linking } from "react-native";
+import { View, Text, Button, StyleSheet } from "react-native";
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import LoadingScreen from "./LoadingScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import { useCameraDevice } from "react-native-vision-camera";
 
-export default function HomeScreen() {
+export default function HomeScreen({ route }) {
   const [who, setWho] = useState();
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
-  const device = useCameraDevice("back");
 
-  if (device == null) return <NoCameraDeviceError />;
   const getData = async () => {
     setLoading(true);
     try {
@@ -51,14 +48,19 @@ export default function HomeScreen() {
         flex: 1,
       }}
     >
-      <Text>{who}</Text>
-      {/* <Button
+      <Button
         title="Log out"
         onPress={() => {
           handleLogOut();
         }}
-      /> */}
-      <Camera style={StyleSheet.absoluteFill} device={device} isActive={true} />
+      />
+      <Button
+        title="SCAN QR CODE"
+        onPress={() => {
+          navigation.navigate("ScanQrScreen");
+        }}
+      />
+      {route.params && route.params[0] && <Text>{route.params[0].value}</Text>}
     </View>
   );
 }

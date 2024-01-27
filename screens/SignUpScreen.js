@@ -1,11 +1,13 @@
 import { View, Image, Text, StyleSheet, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
 import api from "../api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Context as UserContext } from "../context/UserContext";
 
 export default function SignUpScreen(props) {
+  const { state, updateWho,updateTeacherId } = useContext(UserContext);
   const navigation = useNavigation();
   const [name, setName] = useState();
   const [email, setEmail] = useState();
@@ -20,11 +22,19 @@ export default function SignUpScreen(props) {
           ? await api.post("/teacher/signup", { name, email, password })
           : await api.post("/student/signup", { name, email, password });
       const token = response.data.token;
+      if (who === "Teacher") {
+        updateTeacherId(response.data.teacherId);
+      }
       await AsyncStorage.setItem("token", token);
       console.log("Register Successfully");
-      navigation.replace("HomeScreen",who);
+      updateWho(who);
+      {
+        who == "Student"
+          ? navigation.replace("StudentMain", who)
+          : navigation.replace("TeacherMain", who);
+      }
     } catch (err) {
-      console.log(err);
+      console.log(err.message);
     }
   };
   return (

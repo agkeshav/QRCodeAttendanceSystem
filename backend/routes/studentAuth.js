@@ -5,9 +5,10 @@ const jwt = require("jsonwebtoken");
 
 route.post("/student/signup", async (req, res) => {
   try {
-    let { email, password } = req.body;
+    let { email, rollNo,password } = req.body;
     email = email.toLowerCase();
-    const checkStudent = await Student.findOne({ email });
+    rollNo = rollNo.toUpperCase();
+    const checkStudent = await Student.findOne({ rollNo });
     if (checkStudent) {
       return res
         .status(500)

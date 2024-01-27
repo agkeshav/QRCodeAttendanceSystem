@@ -9,6 +9,7 @@ const app = express();
 const studentAuth = require("./routes/studentAuth");
 const teacherAuth = require("./routes/teacherAuth");
 const authRequire = require("./middleware/authRequire");
+const courseRoutes = require("./routes/courseRoutes");
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(bodyparser.urlencoded({ extended: false }));
@@ -16,8 +17,8 @@ app.use(bodyparser.json());
 
 app.use(studentAuth);
 app.use(teacherAuth);
+app.use(courseRoutes);
 app.use(authRequire);
-
 
 app.get("/", authRequire, (req, res) => {
   res.send(req.user);
