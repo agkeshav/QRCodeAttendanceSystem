@@ -14,21 +14,22 @@ import EnrollStudents from "../screens/EnrollStudents";
 import ViewAttendance from "../screens/ViewAttendance";
 import ViewStuAttd from "../screens/ViewStuAttd";
 import { Context as UserContext } from "../context/UserContext";
+
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-export default function Navigation({ navigation }) {
-  const {
-    state: { who },
-  } = useContext(UserContext);
+export default function Navigation() {
   const [token, setToken] = useState("");
+  const [who, setWho] = useState("");
   const [loading, setLoading] = useState(true);
   const tryLocalSignIn = async () => {
     try {
       const token = await AsyncStorage.getItem("token");
-      // console.log(token);
+      const who = await AsyncStorage.getItem("who");
       if (token) {
         setToken(token);
+        setWho(who);
       }
       setLoading(false);
     } catch (err) {
@@ -37,12 +38,8 @@ export default function Navigation({ navigation }) {
   };
   useEffect(() => {
     tryLocalSignIn();
-  });
-  useEffect(() => {
-    if (token && who === "Student") {
-      navigation.replace("StudentMain");
-    }
   }, []);
+
   function TeacherMain() {
     return (
       <Tab.Navigator
@@ -99,8 +96,17 @@ export default function Navigation({ navigation }) {
           </>
         ) : (
           <>
-            <Stack.Screen name="TeacherMain" component={TeacherMain} />
-            <Stack.Screen name="StudentMain" component={StudentMain} />
+            {who === "Student" ? (
+              <>
+                <Stack.Screen name="StudentMain" component={StudentMain} />
+                <Stack.Screen name="TeacherMain" component={TeacherMain} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="TeacherMain" component={TeacherMain} />
+                <Stack.Screen name="StudentMain" component={StudentMain} />
+              </>
+            )}
             <Stack.Screen name="ScanQrScreen" component={ScanQrScreen} />
             <Stack.Screen name="ChooseScreen" component={ChooseScreen} />
             <Stack.Screen name="SignUpScreen" component={SignUpScreen} />

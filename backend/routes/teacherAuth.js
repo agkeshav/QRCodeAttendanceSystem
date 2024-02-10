@@ -9,7 +9,7 @@ const generateRandomNumber = () => {
 };
 route.post("/teacher/signup", async (req, res) => {
   try {
-    let { name,email, password } = req.body;
+    let { name, email, password } = req.body;
     email = email.toLowerCase();
     let teacherId = generateRandomNumber();
     const checkTeacher = await Teacher.findOne({ email });
@@ -30,7 +30,7 @@ route.post("/teacher/signup", async (req, res) => {
       password,
     });
     const token = jwt.sign({ userId: teacher._id }, "MY_SECRET_KEY");
-    res.send({ token,teacherId });
+    res.send({ token, teacherId });
   } catch (err) {
     res.status(500).json({ success: false, msg: err });
   }
@@ -38,24 +38,26 @@ route.post("/teacher/signup", async (req, res) => {
 
 route.post("/teacher/signin", async (req, res) => {
   try {
-    let {email, password } = req.body;
+    let { email, password } = req.body;
     email = email.toLowerCase();
-
+    let teacherId;
     if (!email || !password) {
       return res
         .status(422)
         .json({ success: false, msg: "Please provide email or password" });
     }
     const teacher = await Teacher.findOne({ email });
+
     if (!teacher) {
       return res
         .status(422)
         .json({ success: false, msg: "Email Does Not Exist" });
     }
+    teacherId = teacher.teacherId;
     try {
       await teacher.comparePassword(password);
       const token = jwt.sign({ userId: teacher._id }, "MY_SECRET_KEY");
-      res.send({ token,teacherId });
+      res.send({ token, teacherId });
     } catch (err) {
       return res.status(422).json({ success: false, msg: "Wrong Password" });
     }

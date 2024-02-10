@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const AttendanceSchema = mongoose.Schema({
   courseId: String,
@@ -7,3 +7,5 @@ const AttendanceSchema = mongoose.Schema({
   students: [],
   teacherId: String,
 });
+
+module.exports = mongoose.model("Attendance", AttendanceSchema);

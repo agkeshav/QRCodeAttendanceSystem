@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 
 route.post("/student/signup", async (req, res) => {
   try {
-    let { email, rollNo,password } = req.body;
+    let { name, email, rollNo, password } = req.body;
     email = email.toLowerCase();
     rollNo = rollNo.toUpperCase();
     const checkStudent = await Student.findOne({ rollNo });
@@ -15,6 +15,8 @@ route.post("/student/signup", async (req, res) => {
         .json({ success: false, msg: "Student already Exist" });
     }
     const student = await Student.create({
+      name,
+      rollNo,
       email,
       password,
     });
@@ -53,6 +55,5 @@ route.post("/student/signin", async (req, res) => {
     res.status(500).json({ success: false, msg: err });
   }
 });
-
 
 module.exports = route;

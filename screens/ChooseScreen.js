@@ -1,19 +1,19 @@
-import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  StatusBar,
+} from "react-native";
 import React from "react";
 import { useNavigation } from "@react-navigation/native";
 
 export default function ChooseScreen() {
   const navigation = useNavigation();
   return (
-    <View
-      style={{
-        display: "flex",
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "white",
-      }}
-    >
+    <View style={styles.container}>
+      <StatusBar backgroundColor={"#EF9E1C"} />
       <Text style={{ fontWeight: "bold", fontSize: 25 }}>Who Are You?</Text>
       <View
         style={{
@@ -53,6 +53,13 @@ export default function ChooseScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    display: "flex",
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+  },
   textStyle: {
     alignSelf: "center",
     marginTop: 5,

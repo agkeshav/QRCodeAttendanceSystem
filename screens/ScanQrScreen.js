@@ -1,5 +1,12 @@
 "use strict";
-import { View, Text, Button, Linking, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  Linking,
+  StyleSheet,
+  StatusBar,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -9,10 +16,14 @@ import {
   useCodeScanner,
 } from "react-native-vision-camera";
 import Toast from "react-native-simple-toast";
-export default function ScanQrScreen() {
+import LoadingScreen from "./LoadingScreen";
+import api from "../api/api";
+
+export default function ScanQrScreen({ route }) {
   const { hasPermission, requestPermission } = useCameraPermission();
   const [who, setWho] = useState();
-  const [loading, setLoading] = useState(true);
+  const [toastShown, setToastShown] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const device = useCameraDevice("back");
   if (device == null) {
@@ -22,6 +33,21 @@ export default function ScanQrScreen() {
       </View>
     );
   }
+  const handleAttendance = async (codes, currentDate) => {
+    setLoading(true);
+    try {
+      const response = await api.post("/attendance", {
+        codes: codes,
+        currentDate: currentDate,
+        rollNo: route.params,
+      });
+      Toast.show(response.data.msg, Toast.LONG);
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     const checkPermission = async () => {
       const permissionStatus = hasPermission;
@@ -36,15 +62,20 @@ export default function ScanQrScreen() {
   }, []);
   const codeScanner = useCodeScanner({
     codeTypes: ["qr", "ean-13"],
-    onCodeScanned: (codes) => {
-      if(codes.length>0){
+    onCodeScanned: async(codes) => {
+      if (codes.length > 0 && !toastShown) {
         Toast.show("QR Scanned Successfully", Toast.LONG);
-        navigation.navigate('HomeScreen',codes);
+        setToastShown(true);
+        await handleAttendance(codes, Date(), route.params.rollNo);
+        navigation.navigate("HomeScreen");
       }
     },
   });
-  return (
+  return loading ? (
+    <LoadingScreen />
+  ) : (
     <View style={styles.container}>
+      <StatusBar backgroundColor={"#EF9E1C"} />
       <Camera
         device={device}
         isActive={true}

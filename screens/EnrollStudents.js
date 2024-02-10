@@ -14,6 +14,7 @@ import Modal from "react-native-modal";
 import Toast from "react-native-simple-toast";
 import { CheckBox } from "@rneui/themed";
 import { Context as UserContext } from "../context/UserContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EnrollStudents() {
   const [value, setValue] = useState(null);
@@ -23,9 +24,9 @@ export default function EnrollStudents() {
   const [courseName, setCourseName] = useState();
   const [courses, setCourses] = useState([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
-  const {
-    state: { teacherId },
-  } = useContext(UserContext);
+  const [students, setStudents] = useState([]);
+  const [checkedState, setCheckedState] = useState([]);
+  const [teacherId, setTeacherId] = useState();
 
   const getAllCourses = async () => {
     try {
@@ -40,24 +41,42 @@ export default function EnrollStudents() {
       setLoading(false);
     }
   };
-  // const getAllStudents = async()=>{
-  //   try{
-
-  //   }
-  //   catch(err){
-
-  //   }
-  // }
+  const getAllStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/students");
+      setStudents(response.data.msg);
+      setCheckedState(new Array(students.length).fill(false));
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    getAllCourses();
+    const fetchData = async () => {
+      const tid = await AsyncStorage.getItem("teacherId");
+      setTeacherId(tid);
+      await getAllCourses();
+      await getAllStudents();
+    };
+
+    fetchData();
   }, []);
+
+  useEffect(() => {
+    setCheckedState(new Array(students.length).fill(false));
+  }, [students]);
   const handleCreateCourse = async () => {
     if (courseId == undefined || courseName == undefined) {
       Toast.show("Please Fill All The Details", Toast.SHORT);
     } else {
       try {
         setLoading(true);
-        const response = await api.post("/courses", { teacherId,courseId, courseName });
+        const response = await api.post("/courses", {
+          teacherId,
+          courseId,
+          courseName,
+        });
         Toast.show("Course Successfully Created", Toast.SHORT);
         setIsModalVisible(!isModalVisible);
         setLoading(false);
@@ -69,6 +88,36 @@ export default function EnrollStudents() {
       }
     }
   };
+  const handleEnrollStudents = async () => {
+    let allStudent = [];
+    checkedState.map((item, index) => {
+      if (item == true) {
+        allStudent.push(students[index]);
+      }
+    });
+    if (!value) {
+      Toast.show("Choose the course", Toast.SHORT);
+    } else {
+      try {
+        setLoading(true);
+        const response = await api.post("/enrollStudents", {
+          allStudent,
+          value,
+        });
+        Toast.show("Students successfully enrolled", Toast.SHORT);
+        setIsAllSelected(false);
+        const updatedCheckedState = checkedState.map(
+          (item, i) => (item = false)
+        );
+        setCheckedState(updatedCheckedState);
+        setLoading(false);
+      } catch (err) {
+        setLoading(false);
+        console.log(err);
+      }
+    }
+  };
+
   const renderItem = (item, index) => {
     return (
       <>
@@ -118,7 +167,7 @@ export default function EnrollStudents() {
         onChange={(item) => {
           setValue(item.courseId);
         }}
-        renderItem={(item) => renderItem(item)}
+        renderItem={(item, index) => renderItem(item, index)}
       />
       <Modal
         isVisible={isModalVisible}
@@ -186,10 +235,50 @@ export default function EnrollStudents() {
             center
             title="Select All"
             checked={isAllSelected}
-            onPress={() => setIsAllSelected(!isAllSelected)}
+            onPress={() => {
+              if (!isAllSelected) {
+                setIsAllSelected(true);
+                const updatedCheckedState = checkedState.map(() => true);
+                setCheckedState(updatedCheckedState);
+              } else {
+                setIsAllSelected(false);
+                const updatedCheckedState = checkedState.map(() => false);
+                setCheckedState(updatedCheckedState);
+              }
+            }}
             checkedColor="#EF9E1C"
           />
         </View>
+        {students.map((item, index) => {
+          return (
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ fontSize: 16 }}>{item.rollNo}</Text>
+              <CheckBox
+                checked={checkedState[index]}
+                onPress={() => {
+                  const updatedCheckedState = checkedState.map((item, i) =>
+                    i === index ? !item : item
+                  );
+                  setCheckedState(updatedCheckedState);
+                }}
+                checkedColor="#EF9E1C"
+              />
+            </View>
+          );
+        })}
+        <TouchableOpacity
+          style={styles.touchableOpacityStyle}
+          onPress={() => handleEnrollStudents()}
+        >
+          <Text style={{ color: "white", fontSize: 15 }}>ENROLL STUDENTS</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
