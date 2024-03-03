@@ -108,9 +108,7 @@ export default function HomeScreen({ route }) {
       >
         <Text style={{ fontSize: 16, color: "white" }}>SCAN QR CODE</Text>
       </TouchableOpacity>
-      {/* {route.params && route.params.codes[0].value && (
-        <Text>{route.params.codes[0].value}</Text>
-      )} */}
+      
     </View>
   );
 }

@@ -15,6 +15,7 @@ const authRequire = require("./middleware/authRequire");
 const courseRoutes = require("./routes/courseRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
+const teacherRoutes = require("./routes/teacherRoutes")
 const Student = require("./models/Student");
 const Course = require("./models/Course");
 const Teacher = require("./models/Teacher");
@@ -27,6 +28,7 @@ app.use(studentAuth);
 app.use(teacherAuth);
 app.use(courseRoutes);
 app.use(studentRoutes);
+app.use(teacherRoutes)
 app.use(attendanceRoutes);
 app.use(authRequire);
 

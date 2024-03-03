@@ -14,7 +14,7 @@ import EnrollStudents from "../screens/EnrollStudents";
 import ViewAttendance from "../screens/ViewAttendance";
 import ViewStuAttd from "../screens/ViewStuAttd";
 import { Context as UserContext } from "../context/UserContext";
-
+import { MaterialCommunityIcons, Ionicons } from "react-native-vector-icons";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -52,9 +52,35 @@ export default function Navigation() {
           tabBarHideOnKeyboard: true,
         }}
       >
-        <Tab.Screen name="TakeAttendance" component={TakeAttendance} />
-        <Tab.Screen name="EnrollStudents" component={EnrollStudents} />
-        <Tab.Screen name="ViewAttendance" component={ViewAttendance} />
+        <Tab.Screen
+          name="TakeAttendance"
+          component={TakeAttendance}
+          options={{
+            tabBarIcon: () => (
+              <Ionicons name="create" color="black" size={25} />
+            ),
+            tabBarLabel: "GENERATE",
+            tabBarLabelStyle: {
+              color: "black",
+              fontWeight: "bold",
+            },
+          }}
+        />
+        <Tab.Screen
+          name="EnrollStudents"
+          component={EnrollStudents}
+          options={{
+            tabBarIcon: () => (
+              <Ionicons name="person-add" color="black" size={25} />
+            ),
+            tabBarLabel: "ENROLL",
+            tabBarLabelStyle: {
+              color: "black",
+              fontWeight: "bold",
+            },
+          }}
+        />
+        {/* <Tab.Screen name="ViewAttendance" component={ViewAttendance} /> */}
       </Tab.Navigator>
     );
   }
@@ -71,8 +97,25 @@ export default function Navigation() {
           },
         }}
       >
-        <Tab.Screen name="HomeScreen" component={HomeScreen} />
-        <Tab.Screen name="ViewStuAttd" component={ViewStuAttd} />
+        <Tab.Screen
+          name="HomeScreen"
+          component={HomeScreen}
+          options={{
+            tabBarIcon: () => (
+              <MaterialCommunityIcons
+                name="qrcode-scan"
+                color="black"
+                size={25}
+              />
+            ),
+            tabBarLabel: "SCAN CODE",
+            tabBarLabelStyle: {
+              color: "black",
+              fontWeight: "bold",
+            },
+          }}
+        />
+        {/* <Tab.Screen name="ViewStuAttd" component={ViewStuAttd} /> */}
       </Tab.Navigator>
     );
   }

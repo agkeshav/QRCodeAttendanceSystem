@@ -107,7 +107,7 @@ export default function EnrollStudents() {
         Toast.show("Students successfully enrolled", Toast.SHORT);
         setIsAllSelected(false);
         const updatedCheckedState = checkedState.map(
-          (item, i) => (item = false)
+          (item, index) => (item = false)
         );
         setCheckedState(updatedCheckedState);
         setLoading(false);
@@ -252,6 +252,7 @@ export default function EnrollStudents() {
         {students.map((item, index) => {
           return (
             <View
+              key={index}
               style={{
                 display: "flex",
                 flexDirection: "row",
@@ -261,6 +262,7 @@ export default function EnrollStudents() {
             >
               <Text style={{ fontSize: 16 }}>{item.rollNo}</Text>
               <CheckBox
+                key={index}
                 checked={checkedState[index]}
                 onPress={() => {
                   const updatedCheckedState = checkedState.map((item, i) =>

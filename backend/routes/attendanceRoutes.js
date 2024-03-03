@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express.Router();
 const Attendance = require("../models/Attendance");
+const Student = require("../models/Student");
+const Course = require("../models/Course");
 
 app.post("/attendance", async (req, res) => {
   let { codes, currentDate, rollNo } = req.body;
@@ -55,6 +57,82 @@ app.post("/attendance", async (req, res) => {
       .json({ success: true, msg: "Attedance Marked Successfully" });
   } catch (err) {
     res.status(500).json({ success: false, msg: err });
+  }
+});
+
+app.get("/studentattendance", async (req, res) => {
+  var attendance = [];
+  const { rollNo, courseId } = req.query;
+
+  //fetch  all the courses of this particular student with the courseId and courseName
+  try {
+    const getCourse = await Course.findOne(
+      { courseId: courseId },
+      { students: 0, __v: 0 }
+    );
+    const cid = getCourse.courseId;
+    const courseName = getCourse.courseName;
+    attendance.push({ courseName: courseName, attd: [] });
+    const attd = await Attendance.find(
+      { courseId: cid },
+      { teacherId: 0, __v: 0, hours: 0, _id: 0, courseId: 0 }
+    );
+    if (attd.length > 0) {
+      await Promise.all(
+        attd.map((item) => {
+          var date = item.date;
+          var stu = item.students;
+          const found = stu.find((element) => element === rollNo);
+          if (found) {
+            attendance[0].attd.push({
+              date: date,
+              present: found ? "1" : "0",
+            });
+          }
+        })
+      );
+      res.status(200).json({ success: true, msg: attendance });
+    } else {
+      res.status(200).json({ success: true, msg: [] });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, msg: "Internal Server Error" });
+  }
+});
+
+app.get("/teacherattendance", async (req, res) => {
+  var attendance = [];
+  const { teacherId, courseId } = req.query;
+  try {
+    const attde = await Attendance.find(
+      { teacherId: teacherId, courseId: courseId },
+      { teacherId: 0, courseId: 0, __v: 0, _id: 0, hours: 0 }
+    );
+    // find all the students associated with that particular courseId
+    const stu = await Course.findOne(
+      { courseId: courseId },
+      { _id: 0, courseId: 0, courseName: 0, __v: 0 }
+    ).populate("students");
+    stu.students.map((item) => {
+      attendance.push({ rollNo: item.rollNo, attd: [] });
+    });
+
+    attde.map((item) => {
+      const date = item.date;
+      const studs = item.students;
+      studs.map((item2) => {
+        attendance.map((item1) => {
+          item1.attd.push({
+            date: date,
+            present: studs.includes(item2) ? "1" : "0",
+          });
+        });
+      });
+    });
+    res.status(200).json({ success: true, msg: attendance });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).json({ success: false, msg: "Internal Server Error" });
   }
 });
 
