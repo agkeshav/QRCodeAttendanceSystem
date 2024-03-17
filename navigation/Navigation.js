@@ -14,7 +14,11 @@ import EnrollStudents from "../screens/EnrollStudents";
 import ViewAttendance from "../screens/ViewAttendance";
 import ViewStuAttd from "../screens/ViewStuAttd";
 import { Context as UserContext } from "../context/UserContext";
-import { MaterialCommunityIcons, Ionicons } from "react-native-vector-icons";
+import {
+  MaterialCommunityIcons,
+  Ionicons,
+  Entypo,
+} from "react-native-vector-icons";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -80,7 +84,20 @@ export default function Navigation() {
             },
           }}
         />
-        {/* <Tab.Screen name="ViewAttendance" component={ViewAttendance} /> */}
+        <Tab.Screen
+          name="ViewAttendance"
+          component={ViewAttendance}
+          options={{
+            tabBarIcon: () => (
+              <Entypo name="spreadsheet" color="black" size={25} />
+            ),
+            tabBarLabel: "ATTENDANCE",
+            tabBarLabelStyle: {
+              color: "black",
+              fontWeight: "bold",
+            },
+          }}
+        />
       </Tab.Navigator>
     );
   }
@@ -115,7 +132,20 @@ export default function Navigation() {
             },
           }}
         />
-        {/* <Tab.Screen name="ViewStuAttd" component={ViewStuAttd} /> */}
+        <Tab.Screen
+          name="ViewStuAttd"
+          component={ViewStuAttd}
+          options={{
+            tabBarIcon: () => (
+              <Entypo name="spreadsheet" color="black" size={25} />
+            ),
+            tabBarLabel: "ATTENDANCE",
+            tabBarLabelStyle: {
+              color: "black",
+              fontWeight: "bold",
+            },
+          }}
+        />
       </Tab.Navigator>
     );
   }

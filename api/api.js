@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 const instance = axios.create({
-  baseURL: "https://32b6-45-127-199-142.ngrok-free.app",
+  baseURL: "https://qrcodeattd-backend.vercel.app/",
 });
 
 instance.interceptors.request.use(

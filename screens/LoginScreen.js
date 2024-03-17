@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
+  ScrollView,
 } from "react-native";
 import React, { useContext, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
@@ -44,7 +45,7 @@ export default function LoginScreen(props) {
     }
   };
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <StatusBar backgroundColor={"#EF9E1C"} />
       <Image
         source={
@@ -75,6 +76,7 @@ export default function LoginScreen(props) {
         placeholderTextColor={"gray"}
         style={styles.textInput}
         secureTextEntry={true}
+      
       />
 
       <TouchableOpacity
@@ -106,7 +108,7 @@ export default function LoginScreen(props) {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   useWindowDimensions,
+  PermissionsAndroid,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import LoadingScreen from "./LoadingScreen";
@@ -13,107 +14,20 @@ import api from "../api/api";
 import { Dropdown } from "react-native-element-dropdown";
 import Toast from "react-native-simple-toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import RNHTMLtoPDF from "react-native-html-to-pdf";
+var RNFS = require("react-native-fs");
+import XLSX from "xlsx";
+import FileViewer from "react-native-file-viewer";
+
 export default function ViewAttendance() {
   const [teacherId, setTeacherId] = useState();
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState(null);
   const [courses, setCourses] = useState([]);
   const [attdData, setAttdData] = useState([]);
+  const [generate, setGenerate] = useState(false);
   const width = useWindowDimensions().width;
   const height = useWindowDimensions().height;
   console.log(attdData);
-  const attde = [
-    {
-      attd: [
-        {
-          date: "2024-02-09",
-          present: "1",
-        },
-      ],
-      rollNo: "BT21CSE001",
-    },
-  ];
-  const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pdf Content</title>
-    <style>
-        body {
-            font-size: 16px;
-            color: rgb(255, 196, 0);
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        .list {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: space-between;
-        }
-
-        .key {
-            font-family: "Inter", sans-serif;
-            font-weight: 600;
-            color: #c9cdd2;
-            font-size: 12px;
-            line-height: 1.2;
-            width: 40%;
-        }
-
-        .value {
-            font-family: "Inter", sans-serif;
-            font-weight: 600;
-            color: #5e6978;
-            font-size: 12px;
-            line-height: 1.2;
-            text-transform: capitalize;
-            width: 60%;
-            flex-wrap: wrap;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="confirmationBox_content">
-    <h1>Hello!</h1>
-        
-            
-          ${attde.map(
-            (el) =>
-              `<div class="list" key=${el.rollNo}>
-                    <p class="key">${el.rollNo}</p>
-                    <p class="value">${el.attd[0].date}</p>
-                    <p class="value">${el.attd[0].present}</p>
-                </div>`
-          )}
-        
-    </div>
-</body>
-
-</html>`;
-  const createPDF = async () => {
-    try {
-      let PDFOptions = {
-        html: htmlContent,
-        fileName: "file",
-        directory: Platform.OS === "android" ? "Downloads" : "Documents",
-      };
-      let file = await RNHTMLtoPDF.convert(PDFOptions);
-      console.log("pdf", file.filePath);
-      if (!file.filePath) return;
-      alert(file.filePath);
-    } catch (error) {
-      console.log("Failed to generate pdf", error.message);
-    }
-  };
   const getTeacherCourses = async () => {
     try {
       setLoading(true);
@@ -130,6 +44,97 @@ export default function ViewAttendance() {
   const getTeacherId = async () => {
     const tid = await AsyncStorage.getItem("teacherId");
     setTeacherId(tid);
+  };
+  const exportDataToExcel = async (attdData) => {
+    // Created Sample data
+    if (!attdData || attdData.length === 0) {
+      console.log("No data to export.");
+      return;
+    }
+    let sample_data_to_export = attdData;
+    let wb = XLSX.utils.book_new();
+    const wsData = [];
+
+    // Push header row
+    const headerRow = [
+      "RollNo",
+      ...(sample_data_to_export.length > 0
+        ? sample_data_to_export[0].attd
+            .map((item) => {
+              const parts = item.date.split("-");
+              return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            })
+            .reverse()
+        : []),
+    ];
+
+    wsData.push(headerRow);
+    sample_data_to_export.forEach((item) => {
+      const rowData = [item.rollNo];
+      item.attd.forEach((attendance) => {
+        rowData.push(attendance.present);
+      });
+      wsData.push(rowData);
+    });
+    let ws = XLSX.utils.aoa_to_sheet(wsData);
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+    const wbout = XLSX.write(wb, { type: "binary", bookType: "xlsx" });
+
+    // Write generated excel to Storage
+    const path =
+      RNFS.DownloadDirectoryPath + "/" + `${teacherId}` + "_Attendance.xlsx";
+    await RNFS.writeFile(path, wbout, "ascii")
+      .then((r) => {
+        Toast.show("File saved to the location:- " + path, Toast.SHORT);
+        console.log(path);
+        FileViewer.open(path)
+          .then(() => {
+            console.log("success");
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      })
+      .catch((e) => {
+        Toast.show("Some Error Occurred while downloading", Toast.SHORT);
+      });
+  };
+  const handleClick = async (attdData) => {
+    try {
+      let isPermitedExternalStorage = await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+      );
+
+      if (!isPermitedExternalStorage) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: "Storage permission needed",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          }
+        );
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          // Permission Granted (calling our exportDataToExcel function)
+          exportDataToExcel(attdData);
+          Toast.show("Permission granted", Toast.SHORT);
+        } else {
+          // Permission denied
+          Toast.show("Permission denied", Toast.SHORT);
+        }
+      } else {
+        // Already have Permission (calling our exportDataToExcel function)
+        exportDataToExcel(attdData);
+      }
+      setGenerate(false);
+    } catch (e) {
+      Toast.show("Error while checking permission", Toast.SHORT);
+      console.log(e);
+      setGenerate(false);
+      return;
+    }
   };
   const generateReport = async () => {
     if (value == null) {
@@ -148,10 +153,11 @@ export default function ViewAttendance() {
           courseId: value,
         },
       });
-      setAttdData(response.data.msg);
-
+      setTimeout(() => {
+        setAttdData(response.data.msg);
+      }, 1000);
+      handleClick(attdData);
       setLoading(false);
-      createPDF();
     } catch (err) {
       console.log(err);
       setLoading(false);
@@ -163,7 +169,7 @@ export default function ViewAttendance() {
       await getTeacherCourses();
     };
     fetchData();
-  }, [teacherId, attdData]);
+  }, [teacherId]);
   useEffect(() => {}, [attdData]);
   const renderItem = (item, index) => {
     return (
